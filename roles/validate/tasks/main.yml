@@ -1,0 +1,29 @@
+---
+- name: Check nginx is running
+  ansible.builtin.command: systemctl is-active nginx
+  register: nginx_status
+  changed_when: false
+
+- name: Check container is running
+  ansible.builtin.command: docker inspect -f '{{ "{{" }}.State.Status{{ "}}" }}' taskflow-web
+  register: container_status
+  changed_when: false
+
+- name: Check HTTP on port 80
+  ansible.builtin.command: curl -s -o /dev/null -w "%{http_code}" http://localhost
+  register: http80
+  changed_when: false
+
+- name: Check HTTP on port 8080
+  ansible.builtin.command: curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+  register: http8080
+  changed_when: false
+
+- name: Print validation report
+  ansible.builtin.debug:
+    msg:
+      - "Host:               {{ inventory_hostname }}"
+      - "nginx (systemd):    {{ nginx_status.stdout }}"
+      - "container (docker): {{ container_status.stdout }}"
+      - "HTTP :80           {{ http80.stdout }}"
+      - "HTTP :8080         {{ http8080.stdout }}"

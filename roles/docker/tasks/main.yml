@@ -1,0 +1,46 @@
+---
+- name: Ensure docker is installed
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: Ensure docker is running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create build directory
+  ansible.builtin.file:
+    path: /opt/taskflow-web
+    state: directory
+    mode: '0755'
+
+- name: Copy Dockerfile and index.html to build context
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /opt/taskflow-web/
+    mode: '0644'
+  loop:
+    - Dockerfile
+    - index.html
+
+- name: Build custom image
+  community.docker.docker_image:
+    name: taskflow-web
+    tag: latest
+    source: build
+    build:
+      path: /opt/taskflow-web
+    force_source: false
+    state: present
+
+- name: Run custom container
+  community.docker.docker_container:
+    name: taskflow-web
+    image: taskflow-web:latest
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "8080:80"

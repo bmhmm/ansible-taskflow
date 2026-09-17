@@ -1,0 +1,10 @@
+# Ansible
+*.retry
+*.log
+
+# Backups we made during learning
+*.backup/
+*.step*.backup
+
+# OS
+.DS_Store

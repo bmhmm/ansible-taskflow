@@ -1,0 +1,25 @@
+---
+- name: Install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Ensure nginx is running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Serve a custom page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+
+- name: Push nginx site config
+  ansible.builtin.template:
+    src: nginx-default-site.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+  notify: Reload nginx
