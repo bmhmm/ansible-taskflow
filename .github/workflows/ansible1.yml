@@ -1,0 +1,44 @@
+---
+name: Ansible CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:      # allows manual trigger from GitHub UI
+
+jobs:
+  lint-and-check:
+    name: Lint & dry-run playbook
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible and tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Show Ansible version
+        run: ansible --version
+
+      - name: Install required collections
+        run: |
+          ansible-galaxy collection install community.docker
+
+      - name: Run ansible-lint
+        run: ansible-lint site.yml
+
+      - name: Syntax check playbook
+        run: ansible-playbook -i inventory.ini site.yml --syntax-check
+
+      - name: Dry-run playbook (check mode)
+        run: ansible-playbook -i inventory.ini site.yml --check
